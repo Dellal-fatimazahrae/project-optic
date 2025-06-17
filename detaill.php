@@ -1,5 +1,27 @@
 <?php 
+session_start(); // Ajouter session_start() en premier
 include "conixion.php";
+
+// Fonction pour vérifier si l'utilisateur est connecté
+function isLoggedIn() {
+    return isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true && isset($_SESSION['user_id']);
+}
+
+// Fonction pour obtenir le nom d'affichage de l'utilisateur
+function getUserDisplayName() {
+    if (isLoggedIn()) {
+        return $_SESSION['user_name'];
+    }
+    return null;
+}
+
+// Fonction pour obtenir le type d'utilisateur
+function getUserType() {
+    if (isLoggedIn()) {
+        return $_SESSION['user_type'];
+    }
+    return null;
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -23,9 +45,23 @@ include "conixion.php";
             </div>
             <div class="icone-header">
                 <ul>
-                       <li><a href="inscription.php" >inscription</a></li>
-                    <li><a href="connexion.php" >connexion</a></li>
-                    <li><a href="appointement.php" class="panier-link">Rendez-Vous</a></li>
+                    <?php if (isLoggedIn()): ?>
+                        <!-- Utilisateur connecté -->
+                        <li class="user-info">
+                            <span>Bonjour, <?php echo htmlspecialchars(getUserDisplayName()); ?></span>
+                        </li>
+                        <?php if (getUserType() === 'admin'): ?>
+                            <li><a href="admin_dashboard.php" class="panier-link">Dashboard Admin</a></li>
+                        <?php else: ?>
+                            <li><a href="appointement.php" class="panier-link">Mes Rendez-Vous</a></li>
+                        <?php endif; ?>
+                        <li><a href="logout.php" class="logout-link">Déconnexion</a></li>
+                    <?php else: ?>
+                        <!-- Utilisateur non connecté -->
+                        <li><a href="inscription.php">inscription</a></li>
+                        <li><a href="connexion.php">connexion</a></li>
+                        <li><a href="appointement.php" class="panier-link">Rendez-Vous</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </nav>

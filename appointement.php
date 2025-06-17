@@ -7,7 +7,8 @@ $success_message = "";
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'client') {
-    header("Location: connexion.php?redirect=appointement.php");
+    // Rediriger vers la page de connexion avec l'URL de retour
+    header("Location: connexion.php?redirect=" . urlencode($_SERVER['REQUEST_URI']));
     exit();
 }
 
@@ -103,9 +104,7 @@ try {
                     <li class="user-info">
                         <span>Bonjour, <?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
                     </li>
-                        <li><a href="inscription.php" >inscription</a></li>
-                    <!-- <li><a href="connexion.php" >connexion</a></li>
-                    <li><a href="appointement.php" class="panier-link">Rendez-Vous</a></li> -->
+                    <li><a href="inscription.php">inscription</a></li>
                     <li><a href="logout.php" class="logout-link"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
                 </ul>
             </div>

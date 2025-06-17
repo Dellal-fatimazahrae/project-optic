@@ -20,11 +20,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $user = $stmt->fetch();
                 
                 if ($user && password_verify($mot_de_passe, $user['mot_de_passe'])) {
+                    // Régénérer l'ID de session pour la sécurité
+                    session_regenerate_id(true);
+                    
                     $_SESSION['user_id'] = $user['administrateur_id'];
                     $_SESSION['user_name'] = $user['nom_complet'];
                     $_SESSION['user_type'] = 'admin';
                     $_SESSION['user_email'] = $user['email'];
+                    $_SESSION['logged_in'] = true;
                     
+                    // Redirection immédiate pour les admins
                     header("Location: admin_dashboard.php");
                     exit();
                 } else {
@@ -37,13 +42,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $user = $stmt->fetch();
                 
                 if ($user && password_verify($mot_de_passe, $user['mot_de_passe'])) {
+                    // Régénérer l'ID de session pour la sécurité
+                    session_regenerate_id(true);
+                    
                     $_SESSION['user_id'] = $user['client_id'];
                     $_SESSION['user_name'] = $user['nom_complet'];
                     $_SESSION['user_type'] = 'client';
                     $_SESSION['user_email'] = $user['email'];
                     $_SESSION['user_phone'] = $user['numero_telephone'];
+                    $_SESSION['logged_in'] = true;
                     
-                    header("Location: index.php");
+                    // Vérifier si une redirection était demandée
+                    $redirect_url = isset($_GET['redirect']) ? $_GET['redirect'] : 'index.php';
+                    
+                    // S'assurer que l'URL de redirection est sûre
+                    if (filter_var($redirect_url, FILTER_VALIDATE_URL) === false && 
+                        !preg_match('/^[a-zA-Z0-9_\-\.\/]+\.php(\?.*)?$/', $redirect_url)) {
+                        $redirect_url = 'index.php';
+                    }
+                    
+                    header("Location: " . $redirect_url);
                     exit();
                 } else {
                     $error_message = "Email ou mot de passe incorrect.";
@@ -51,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         } catch (PDOException $e) {
             $error_message = "Erreur de connexion à la base de données.";
+            error_log("Database error in connexion.php: " . $e->getMessage());
         }
     } else {
         $error_message = "Veuillez remplir tous les champs.";
@@ -80,8 +99,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="icone-header">
                 <ul>
-                        <li><a href="inscription.php" >inscription</a></li>
-                    <li><a href="connexion.php" >connexion</a></li>
+                    <li><a href="inscription.php">inscription</a></li>
+                    <li><a href="connexion.php">connexion</a></li>
                     <li><a href="appointement.php" class="panier-link">Rendez-Vous</a></li>
                 </ul>
             </div>
@@ -105,12 +124,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="connexion.php" class="auth-form">
+                <form method="POST" action="connexion.php<?php echo isset($_GET['redirect']) ? '?redirect=' . urlencode($_GET['redirect']) : ''; ?>" class="auth-form">
                     <div class="form-group">
                         <label for="user_type">Type de compte:</label>
                         <select name="user_type" id="user_type" required>
-                            <option value="client">Client</option>
-                            <option value="admin">Administrateur</option>
+                            <option value="client" <?php echo (isset($_POST['user_type']) && $_POST['user_type'] === 'client') ? 'selected' : ''; ?>>Client</option>
+                            <option value="admin" <?php echo (isset($_POST['user_type']) && $_POST['user_type'] === 'admin') ? 'selected' : ''; ?>>Administrateur</option>
                         </select>
                     </div>
 
